@@ -1,7 +1,3 @@
-// TODO: creating users and admin on the top
-// using global variables rather than functions
-// conuning with other tests
-
 import { describe, it, expect } from "bun:test";
 import axios from "axios";
 
@@ -11,7 +7,9 @@ const HTTP_URL = "http://localhost:4000/api/v1";
 
 let elementId = "";
 let avatarId = "";
-const fakeElementId = "d4f3588f-11b3-416a-9771-a405a243ce5c";
+let mapId = "";
+let spaceId = "";
+const fakeId = "d4f3588f-11b3-416a-9771-a405a243ce5c";
 
 async function createUser(role: role) {
   const data = {
@@ -24,21 +22,6 @@ async function createUser(role: role) {
   const res2 = await axios.post(`${HTTP_URL}/signin`, data);
 
   return { ...data, token: res2.data.token, id: res1.data.userId };
-}
-
-async function createAvatar(token: string) {
-  const data = {
-    imageUrl:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s",
-    name: "Timmy",
-  };
-  const res = await axios.post(`${HTTP_URL}/admin/avatar`, data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return { id: res.data.id };
 }
 
 const admin = await createUser("ADMIN");
@@ -57,6 +40,7 @@ describe("POST /signup for ADMIN", () => {
         validateStatus: () => true,
       },
     );
+    validateStatus: () => true
     expect(res.data.userId).toBeDefined();
   });
 
@@ -269,6 +253,7 @@ describe("POST /admin/element", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.data.id).toBeDefined();
@@ -288,6 +273,7 @@ describe("POST /admin/element", () => {
       headers: {
         Authorization: `Bearer ${user.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(409);
@@ -305,6 +291,7 @@ describe("POST /admin/element", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(400);
@@ -323,6 +310,7 @@ describe("POST /admin/element", () => {
       headers: {
         Authorization: `Bearer choco`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(401);
@@ -343,6 +331,7 @@ describe("PUT /admin/element/:elementId", () => {
         headers: {
           Authorization: `Bearer ${admin.token}`,
         },
+        validateStatus: () => true,
       },
     );
 
@@ -362,6 +351,7 @@ describe("PUT /admin/element/:elementId", () => {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
+        validateStatus: () => true,
       },
     );
 
@@ -375,12 +365,13 @@ describe("PUT /admin/element/:elementId", () => {
     };
 
     const res = await axios.put(
-      `${HTTP_URL}/admin/element/${fakeElementId}`,
+      `${HTTP_URL}/admin/element/${fakeId}`,
       data,
       {
         headers: {
           Authorization: `Bearer ${admin.token}`,
         },
+        validateStatus: () => true,
       },
     );
 
@@ -397,6 +388,7 @@ describe("PUT /admin/element/:elementId", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.data.id).toBeDefined();
@@ -415,6 +407,7 @@ describe("POST /admin/avatar", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.data.avatarId).toBeDefined();
@@ -432,6 +425,7 @@ describe("POST /admin/avatar", () => {
       headers: {
         Authorization: `Bearer ${user.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(409);
@@ -447,6 +441,7 @@ describe("POST /admin/avatar", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(400);
@@ -463,6 +458,7 @@ describe("POST /admin/avatar", () => {
       headers: {
         Authorization: `Bearer choco`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(401);
@@ -541,9 +537,11 @@ describe("/POST /admin/map", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.data.id).toBeDefined();
+    mapId = res.data.id;
   });
 
   it("it will fail as user cant create maps", async () => {
@@ -564,6 +562,7 @@ describe("/POST /admin/map", () => {
       headers: {
         Authorization: `Bearer ${user.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(409);
@@ -587,6 +586,7 @@ describe("/POST /admin/map", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(400);
@@ -610,13 +610,14 @@ describe("/POST /admin/map", () => {
       headers: {
         Authorization: `Bearer choco`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(401);
   });
 
   it("it will fail as element will not be found", async () => {
-    const fakeElementId = "d4f3588f-11b3-416a-9771-a405a243ce5c";
+    const fakeId = "d4f3588f-11b3-416a-9771-a405a243ce5c";
 
     const data = {
       thumbnail: "choco",
@@ -624,7 +625,7 @@ describe("/POST /admin/map", () => {
       name: "100 person interview room",
       defaultElements: [
         {
-          elementId: fakeElementId,
+          elementId: fakeId,
           x: 20,
           y: 20,
         },
@@ -635,8 +636,344 @@ describe("/POST /admin/map", () => {
       headers: {
         Authorization: `Bearer ${admin.token}`,
       },
+      validateStatus: () => true,
     });
 
     expect(res.status).toBe(404);
+  });
+});
+
+describe('/POST /space', () => {
+  it ("it should be succeed", async () => {
+    const data = {
+      "name": "Test",
+      "dimensions": "100x200",
+      "mapId": mapId
+    };
+
+    const res = await axios.post(`${HTTP_URL}/space`, data, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.data.spaceId).toBeDefined();
+    spaceId = res.data.spaceId; 
+  })
+
+  it ("it should fail as of invalid inputs", async () => {
+    const data = {
+      "name": "Test",
+      "dimensions": "100x200",
+      "mapId": "mapId"
+    };
+
+    const res = await axios.post(`${HTTP_URL}/space`, data, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+      validateStatus: () => true
+    });
+
+    expect(res.status).toBe(400);
+  })
+
+  it ("it should fail as of map not found", async () => {
+    const data = {
+      "name": "Test",
+      "dimensions": "100x200",
+      "mapId": "df255046-515d-4c6e-84c0-e4ac25337c4f"
+    };
+
+    const res = await axios.post(`${HTTP_URL}/space`, data, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true
+    });
+
+    expect(res.status).toBe(404);
+  })
+
+  
+  it ("it should fail as un-authorized", async () => {
+    const data = {
+      "name": "Test",
+      "dimensions": "100x200",
+      "mapId": "df255046-515d-4c6e-84c0-e4ac25337c4f"
+    };
+
+    const res = await axios.post(`${HTTP_URL}/space`, data, {
+      headers: {
+        Authorization: `Bearer choco`
+      },
+      validateStatus: () => true
+    });
+
+    expect(res.status).toBe(401);
+  })
+})
+
+
+describe('/DELETE /space/:spaceId', () => {
+  it ("it should be succeed", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/${spaceId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(200);
+  })
+  
+  it ("it should fail as of ownership", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/${spaceId}`, {
+      headers: {
+        Authorization: `Bearer ${admin.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(409);
+  })
+  
+  it ("it should fail as of invalid inputs", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/choco`, {
+      headers: {
+        Authorization: `Bearer ${admin.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(400);
+  })
+  
+  it ("it should fail as of map not found", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/${fakeId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(404);
+  })
+
+})
+
+describe("GET /space/all", () => {
+  it("it should be successfull", async () => {
+    const res = await axios.get(`${HTTP_URL}/space/all`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.data.spaces).toBeArray();
+  });
+});
+
+describe('/GET /space/:spaceId', () => {
+  it("it should be successfull", async () => {
+    const res = await axios.get(`${HTTP_URL}/space/${spaceId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.data.dimensions).toBeDefined();
+    expect(res.data.elements).toBeArray();
+  });
+
+  it("it should return auth error", async () => {
+    const res = await axios.get(`${HTTP_URL}/space/${spaceId}`, {
+      headers: {
+        Authorization: `Bearer choco`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("it should return space not found", async () => {
+    const res = await axios.get(`${HTTP_URL}/space/${fakeId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(404);
+  });
+})
+
+describe('/POST /space/element', () => {
+  it("it should be successfull", async () => {
+    const data = {
+      "elementId": elementId,
+      "spaceId": spaceId,
+      "x": 50,
+      "y": 20
+    };
+    
+    const res = await axios.post(`${HTTP_URL}/space/element`, data, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(201);
+  });
+
+  it("it should fail as of invalid inputs", async () => {
+    const data = {
+      "elementId": "elementId",
+      "spaceId": "spaceId",
+      "x": 50,
+      "y": 20
+    };
+    
+    const res = await axios.post(`${HTTP_URL}/space/element`, data, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("it should fail as element and space not found", async () => {
+    const data = {
+      "elementId": fakeId,
+      "spaceId": fakeId,
+      "x": 50,
+      "y": 20
+    };
+    
+    const res = await axios.post(`${HTTP_URL}/space/element`, data, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(404);
+  });
+
+  it("it should fail as of auth error", async () => {
+    const data = {
+      "elementId": fakeId,
+      "spaceId": fakeId,
+      "x": 50,
+      "y": 20
+    };
+    
+    const res = await axios.post(`${HTTP_URL}/space/element`, data, {
+      headers: {
+        Authorization: `Bearer choco`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("it should fail as of ownership check", async () => {
+    const data = {
+      "elementId": fakeId,
+      "spaceId": fakeId,
+      "x": 50,
+      "y": 20
+    };
+    
+    const res = await axios.post(`${HTTP_URL}/space/element`, data, {
+      headers: {
+        Authorization: `Bearer ${admin.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(409);
+  });
+
+});
+
+
+describe('/DELETE /space/element/:elementId', () => {
+  it ("it should be succeed", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/element/${elementId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(200);
+  })
+
+  it ("it should fail as of ownership check", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/element/${elementId}`, {
+      headers: {
+        Authorization: `Bearer ${admin.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(409);
+  })
+
+  it ("it should fail as of invalid inputs", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/element/chcoc`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(400);
+  })
+
+  it ("it should fail as of not found element", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/element/${fakeId}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(404);
+  })
+
+  it ("it should fail as of auth error", async () => {
+    const res = await axios.delete(`${HTTP_URL}/space/element/${fakeId}`, {
+      headers: {
+        Authorization: `Bearer choco`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.status).toBe(404);
+  })
+
+})
+
+
+describe("GET /elements", () => {
+  it("it should be successfull", async () => {
+    const res = await axios.get(`${HTTP_URL}/elements`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      },
+      validateStatus: () => true,
+    });
+
+    expect(res.data.elements).toBeArray();
   });
 });
